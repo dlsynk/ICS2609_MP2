@@ -11,6 +11,7 @@
     <title>Login</title>
 </head>
 <body>
+    
     <h2>Login Page</h2>
     <form action="LoginServlet" method="post">
         <label for="username">Username:</label>
@@ -26,6 +27,3 @@
 
 </html>
 
-
-
-<!-- C:\ProgramData\MySQL\MySQL Server 8.0\Data\webapplicationdb--!>

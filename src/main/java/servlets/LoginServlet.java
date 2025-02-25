@@ -7,6 +7,7 @@ package servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -29,18 +30,40 @@ public class LoginServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet LoginServlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet LoginServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        String port = "3310";
+        String databaseName = "webapplicationdb";
+        String userName = "root";
+        String password = "1234";
+        String jdbcUrl = "jdbc:mysql://localhost:" + port + "/" + databaseName + "?user=" + userName + "&password=" + password;
+        String name = request.getParameter("username");
+        String pass = request.getParameter("password");
+        
+        
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(jdbcUrl);
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("Select * FROM account WHERE user_name=" + name);
+            
+            while(rs.next()) {
+                String confirmName = rs.getString("user_name");
+                String confirmPass = rs.getString("password");
+                String role = rs.getString("user_role");
+                
+                if (confirmName.equals(name) && confirmPass.equals(pass)) {
+                    if (role.equals("user")) {
+                        response.sendRedirect("landing.jsp");
+                    }
+                    else if (role.equals("admin")) {
+                        response.sendRedirect("/admin/landing_admin.jsp");
+                    }
+                    else if (role.equals("super_admin")) {
+                        
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
