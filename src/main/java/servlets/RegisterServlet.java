@@ -5,11 +5,12 @@
 package servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.sql.*;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -29,17 +30,48 @@ public class RegisterServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet RegisterServlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet RegisterServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        
+        String port = "3310";
+        String databaseName = "webapplicationdb";
+        String userName = "root";
+        String password = "EvansArthur2004";
+        String jdbcUrl = "jdbc:mysql://localhost:" + port + "/" + databaseName + "?useSSL=false";
+        
+        String user= request.getParameter("username");
+        String pass = request.getParameter("password");
+        
+        
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(jdbcUrl, userName, password);
+            Statement stmt = conn.createStatement();
+            
+            ResultSet rs = stmt.executeQuery("SELECT * FROM webapplicationdb.account WHERE user_name='" + user + "'");
+            if (rs.next()) {
+                response.sendRedirect("errors/login_and_register.jsp?message=User%20already%20exists!");
+            }
+            
+            String insertQuery = "INSERT INTO webapplicationdb.account (user_name, password, user_role) VALUES (?, ?, ?)";
+            PreparedStatement insertStmt = conn.prepareStatement(insertQuery);
+            insertStmt.setString(1, user);
+            insertStmt.setString(2, pass);
+            insertStmt.setString(3, "user");
+            int rowsInserted = insertStmt.executeUpdate();
+
+            if (rowsInserted > 0) {
+                stmt.executeUpdate("INSERT INTO webapplicationdb.posts (user_name) VALUES ('" + user + "')");
+                stmt.executeUpdate("INSERT INTO webapplicationdb.follows (user_name) VALUES ('" + user + "')");
+                response.sendRedirect("login.jsp?message=Registration%20Successful.");
+            } else {
+                response.sendRedirect("errors/login_and_register.jsp?message=Registration%20Failed.%20Try%20Again.");
+            }
+            
+            rs.close();
+            stmt.close();
+            insertStmt.close();
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

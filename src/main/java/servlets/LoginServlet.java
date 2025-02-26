@@ -8,10 +8,12 @@ package servlets;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.*;
+import java.util.HashSet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -33,17 +35,19 @@ public class LoginServlet extends HttpServlet {
         String port = "3310";
         String databaseName = "webapplicationdb";
         String userName = "root";
-        String password = "1234";
-        String jdbcUrl = "jdbc:mysql://localhost:" + port + "/" + databaseName + "?user=" + userName + "&password=" + password;
+        String password = "EvansArthur2004";
+        String jdbcUrl = "jdbc:mysql://localhost:" + port + "/" + databaseName + "?useSSL=false";
         String name = request.getParameter("username");
         String pass = request.getParameter("password");
         
         
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(jdbcUrl);
+            Connection conn = DriverManager.getConnection(jdbcUrl, userName, password);
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("Select * FROM account WHERE user_name=" + name);
+            ResultSet rs = stmt.executeQuery("Select * FROM webapplicationdb.account WHERE user_name='" + name + "'");
+            
+            boolean userFound = false;
             
             while(rs.next()) {
                 String confirmName = rs.getString("user_name");
@@ -51,17 +55,29 @@ public class LoginServlet extends HttpServlet {
                 String role = rs.getString("user_role");
                 
                 if (confirmName.equals(name) && confirmPass.equals(pass)) {
+                    userFound = true;
                     if (role.equals("user")) {
                         response.sendRedirect("landing.jsp");
                     }
                     else if (role.equals("admin")) {
-                        response.sendRedirect("/admin/landing_admin.jsp");
+                        response.sendRedirect("admin/landing_admin.jsp");
                     }
                     else if (role.equals("super_admin")) {
                         
                     }
+                    HttpSession session = request.getSession();
+                    session.setAttribute("username", name);
+                    break;
+                }
+                if (!userFound) {
+                    response.sendRedirect("login.jsp?error=invalid_credentials");
                 }
             }
+            
+            
+            rs.close();
+            stmt.close();
+            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

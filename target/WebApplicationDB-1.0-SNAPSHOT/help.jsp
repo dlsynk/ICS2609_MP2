@@ -5,6 +5,7 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ include file="authenticator.jsp" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,10 +16,13 @@
     <form action="ConnectionServlet" method="post">
         <label for="Contact">Insert information down below</label>
         <br>
-        <textarea id="contactTextField" name="contactTextField" rows="20" cols="10"></textarea>
+        <textarea id="contactTextField" name="contactTextField" rows="5" cols="50" maxlength="200"></textarea>
         <br>
         <button type="submit">Submit</button>
-        <input type="hidden" id="contactAdmin" name="contactAdmin" value="contact">
+        <input type="hidden" id="contactAdmin" name="connection" value="create_message">
+    </form>
+    <form action="landing.jsp" method="post">
+        <button type="submit">Return</button>
     </form>
 </body>
 
